@@ -6,5 +6,12 @@ public class Main {
         File file = new File();
         String content = file.readFile("res/chiffre.txt");
         System.out.println(content);
+
+        int[] positions = {0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15};
+        String[] Sboxval = { "E", "4", "D", "1", 
+                             "2", "F", "B", "8", 
+                             "3", "A", "6", "C", 
+                             "5", "9", "0", "7" };
+        
     }
 }
