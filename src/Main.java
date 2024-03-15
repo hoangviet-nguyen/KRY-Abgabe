@@ -1,5 +1,7 @@
 import fileio.File;
 
+import java.util.Map;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -12,6 +14,9 @@ public class Main {
                              "2", "F", "B", "8", 
                              "3", "A", "6", "C", 
                              "5", "9", "0", "7" };
+
+        SPNAlgorithm snp = new SPNAlgorithm("0001001100110100010101110111100110011011101111001101111111110001", Sboxval, positions);
+
         
     }
 }

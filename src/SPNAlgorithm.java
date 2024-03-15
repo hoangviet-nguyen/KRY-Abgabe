@@ -13,7 +13,10 @@ public class SPNAlgorithm {
     private int[] positions;
 
     private Map<Integer, String> SBox;
+    private Map<Integer, String> invSBox = new HashMap<>();
+
     private static int[] keys;
+    private int[] permutatedKeys = keys;
     private Map<Integer, Integer> permutation;
 
     public SPNAlgorithm(String key, String[] Sboxval, int[] positions) {
@@ -23,6 +26,7 @@ public class SPNAlgorithm {
         initKeys();
         initPermutation();
         initSBox();
+        initInvBox();
     }
 
     private void initPermutation() {
@@ -61,9 +65,18 @@ public class SPNAlgorithm {
     }
 
     public String encode(String text) {
-
-
-        return null;
+        int i = 0;
+        while(i<=r) {
+            if (i == 0) {
+                permutatedKeys[i] = keys[r];
+            } else if (i == r) {
+                permutatedKeys[i] = keys[0];
+            } else {
+                permutatedKeys[i] = Integer.parseInt(permutateString(String.valueOf(permutatedKeys[r-i])));
+            }
+            i++;
+        }
+        return algorithm(text, SBox, permutatedKeys);
     }
 
     public String decode(String text) {
@@ -72,6 +85,13 @@ public class SPNAlgorithm {
 
     private String algorithm(String text, Map<Integer, String> SBox, int[] keys) {
         return null;
+    }
+
+
+    private void initInvBox() {
+        for(Map.Entry<Integer, String> entry: SBox.entrySet()) {
+            invSBox.put(Integer.parseInt(entry.getValue(), 2), Integer.toBinaryString(entry.getKey()));
+        }
     }
 
 }   
