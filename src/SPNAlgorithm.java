@@ -35,16 +35,6 @@ public class SPNAlgorithm {
         initPermuKeys();
     }
 
-
-    private String[] splitCode(String bitString, int lenght) {
-        assert bitString.length() % lenght == 0;
-        String[] splitted = new String[bitString.length() / lenght];
-        for(int i = 0; i < bitString.length() / lenght; i++) {
-            splitted[i] = bitString.substring(i * lenght, (i+ 1) * lenght);
-        } 
-        return splitted;
-    }
-
     private void initPermutation() {
         permutation = new HashMap<>();
         for(int i = 0; i < positions.length; i++) {
@@ -89,6 +79,21 @@ public class SPNAlgorithm {
 
     }
 
+    private void initInvBox() {
+        for(Map.Entry<String, String> entry: SBox.entrySet()) {
+            invSBox.put(entry.getValue(), entry.getKey());
+        }
+    }
+
+    private String[] splitCode(String bitString, int lenght) {
+        assert bitString.length() % lenght == 0;
+        String[] splitted = new String[bitString.length() / lenght];
+        for(int i = 0; i < bitString.length() / lenght; i++) {
+            splitted[i] = bitString.substring(i * lenght, (i+ 1) * lenght);
+        } 
+        return splitted;
+    }
+
     private String permutateString(String bitString) {
         while (bitString.length() % (n * m) != 0) {
             bitString = "0" + bitString; 
@@ -117,15 +122,13 @@ public class SPNAlgorithm {
     }
 
     public String decode(String text) {
+        assert text.length() % 16 == 0;
         return algorithm(text, invSBox, permutatedKeys);
     }
 
     public String encode(String text) {
         assert text.length() % 16 == 0;      
-        System.out.println("The input value was: " + Integer.parseInt(text, 2));
-        String result = algorithm(text, this.SBox, this.keys);
-        System.out.println("The output value is: " + result);
-        return result;
+        return algorithm(text, SBox, keys);
     }
 
     private String algorithm(String text, Map<String, String> SBox, int[] keys) {
@@ -154,13 +157,6 @@ public class SPNAlgorithm {
         }
 
         return result;
-    }
-
-
-    private void initInvBox() {
-        for(Map.Entry<String, String> entry: SBox.entrySet()) {
-            invSBox.put(entry.getValue(), entry.getKey());
-        }
     }
 
 }   

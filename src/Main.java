@@ -20,14 +20,6 @@ public class Main {
         while (y.length() % 16 != 0) {
             y = "0" + y;
         }
-
-        String hello = "Hello World";
-        hello = asciiToBItString(hello);
-        hello = y + hello;
-        hello += "1";
-        while (hello.length() % 16 != 0) {
-            hello += "0";
-        }
         
         SPNAlgorithm spn = new SPNAlgorithm(key, Sboxval, positions, 4, 4, 4);
 
@@ -43,18 +35,26 @@ public class Main {
         System.out.println("----------------------------------------------------");
 
         System.out.println("Testing with Hello World");
-        String hencryp = algo.encryptDecrypt(hello);
-        String hdecrypt = algo.encryptDecrypt(hencryp);
-        System.out.println(hello);
-        System.out.println(hencryp);
-        System.out.println(hdecrypt);
+        String hello = "Hello World";
+        hello = asciiToBItString(hello);
+        hello = y + hello;
+        hello += "1";
+        while (hello.length() % 16 != 0) {
+            hello += "0";
+        }
+        String hencryp = algo.encryptDecrypt(hello, true);
+        String hdecrypt = algo.encryptDecrypt(hencryp, false);
+        hdecrypt = shortMessage(hdecrypt);
         System.out.println(bStringToAscii(hdecrypt));
-        System.out.println("---------------------------");
+        System.out.println("----------------------------------------------------");
+
+
 
         System.out.println("The real message encryption");
-        String decodString = algo.encryptDecrypt(content);
-        System.out.println(decodString.length());
-        System.out.println(bStringToAscii(decodString.substring(16, decodString.length())));
+        String decodString = algo.encryptDecrypt(content, false);
+
+        decodString = shortMessage(decodString);
+        System.out.println(bStringToAscii(decodString));
 
     }
 
@@ -75,6 +75,14 @@ public class Main {
         return result.toString();
     }
 
+    public static String shortMessage(String message) {
+        int index = message.length() -1;
+        while (message.charAt(index) != '1') {
+            index--;
+        }
+
+        return message.substring(0, index);
+    }
 
     public static String bStringToAscii(String biString) {
         StringBuilder result = new StringBuilder();

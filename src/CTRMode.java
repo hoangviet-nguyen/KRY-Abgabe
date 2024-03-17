@@ -15,12 +15,11 @@ public class CTRMode {
         algorithm = new SPNAlgorithm(key, Sboxval, positions, 4, 4, 4);
     }
 
-    public String encryptDecrypt(String message) {
+    public String encryptDecrypt(String message, boolean encrypt) {
         String result = "";
 
         String rndBit = message.substring(0, 16);
         int  y = Integer.parseInt(rndBit, 2);
-        System.out.println(y);
         String toDecodString = message.substring(16, message.length());
 
         for (int offset = 0; offset < (toDecodString.length() / 16) ; offset++) {
@@ -31,8 +30,7 @@ public class CTRMode {
             y = (y + 1) % (1 << 16);
         }
 
-        result = rndBit + result;
-        return result;
+        return encrypt ? rndBit + result : result;
     }
 
     private String XOR(String bitstring, String key) {
