@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -5,9 +6,9 @@ import java.util.Map;
 public class SPNAlgorithm {
 
     private String key;
-    private int r = 4;
-    private int m = 4;
-    private int n = 4;
+    private int r;
+    private int m;
+    private int n;
 
     private String[] Sboxval;
     private int[] positions;
@@ -19,15 +20,19 @@ public class SPNAlgorithm {
     private int[] permutatedKeys;
     private Map<Integer, Integer> permutation;
 
-    public SPNAlgorithm(String key, String[] Sboxval, int[] positions) {
+    public SPNAlgorithm(String key, String[] Sboxval, int[] positions, int n, int m, int r) {
         this.key = key;
         this.positions = positions;
         this.Sboxval = Sboxval;
+        this.m = m;
+        this.n = n;
+        this.r = r;
+        permutatedKeys = new int[r + 1];
         initKeys();
-        permutatedKeys = keys;
         initPermutation();
         initSBox();
         initInvBox();
+        initPermuKeys();
     }
 
 
@@ -49,113 +54,103 @@ public class SPNAlgorithm {
 
     private void initSBox() {
         SBox = new HashMap<>();
-        int i = 0;
+        int index = 0;
         for(String value: Sboxval) {
             int temp = Integer.parseInt(value, 16);
             String v = Integer.toBinaryString(temp);
-            SBox.put(Integer.toBinaryString(i), v);
-            i++;
+            String key = Integer.toBinaryString(index);
+            key = String.format("%4s", key).replace(' ', '0');
+            v = String.format("%4s", v).replace(' ', '0');
+            SBox.put(key, v);
+            index++;
         }
     }
 
     private void initKeys() {
         keys = new int[r + 1];
         for(int i = 0; i < r + 1; i++) {
-            String currentKey = key.substring(i *n, (i+m) * n);
+            String currentKey = key.substring(i * n, (i+m) * n);
             keys[i] = Integer.parseInt(currentKey, 2);
         }
     }
 
+    private void initPermuKeys() {
+        int i = 1;
+        permutatedKeys[0] = keys[r];
+        permutatedKeys[r] = keys[0];
+
+        while(i < r ) {
+            int key = keys[r-i];
+            String permute = Integer.toBinaryString(key);
+            permute = permutateString(permute);
+            permutatedKeys[i] = Integer.parseInt(permute, 2);
+            i++;
+        }
+
+    }
+
     private String permutateString(String bitString) {
+        while (bitString.length() % (n * m) != 0) {
+            bitString = "0" + bitString; 
+        }
+
         StringBuffer result = new StringBuffer(bitString);
-        for(int i = 0; i < bitString.length(); i++){
+        for(int i = 0; i < bitString.length(); i++) {
             int position = permutation.get(i);
             result.setCharAt(position, bitString.charAt(i));
         }
         return result.toString();
     }
 
-    private String convertSBox(String bString) {
+    private String convertSBox(String bString, Map<String, String> SBox) {
+
+        while(bString.length() % (n * m) != 0) {
+            bString = "0" + bString;
+        }
         String[] splitted = splitCode(bString, 4);
         String result = "";
-        
+
         for (String code : splitted) {
             result += SBox.get(code);
         }
-        
         return result;
     }
 
     public String decode(String text) {
-        int i = 1;
-        permutatedKeys[0] = permutatedKeys[r];
-        permutatedKeys[r] = permutatedKeys[0];
-
-        while(i < r) {
-            String permutaded = permutateString(Integer.toBinaryString(permutatedKeys[r-i]));
-            permutatedKeys[i] = Integer.parseInt(permutaded);
-            i++;
-        }
-
-        String result = algorithm(text, invSBox, permutatedKeys);
-
-        i = result.length();
-        while (result.charAt(i) != '0') {
-            i--;
-        }
-
-        result = result.substring(0, i);
-        return  result;
+        return algorithm(text, invSBox, permutatedKeys);
     }
 
     public String encode(String text) {
-
-        String ascii = "";
-
-        for (char character: text.toCharArray()) {
-            ascii += Integer.toBinaryString(character);   
-        }
-
-        ascii += "1";
-
-        while (ascii.length() % 16 != 0) {
-            ascii += "0";
-        }
-
-        if (text.contains("0") || text.contains("1")) {
-            ascii = text;
-        }
-
-        String result = algorithm(ascii, this.SBox, this.keys);
+        assert text.length() % 16 == 0;      
+        System.out.println("The input value was: " + Integer.parseInt(text, 2));
+        String result = algorithm(text, this.SBox, this.keys);
+        System.out.println("The output value is: " + result);
         return result;
     }
 
     private String algorithm(String text, Map<String, String> SBox, int[] keys) {
-        assert text.length() % 16 == 0;
         String result = "";
         String currentCode = "";
         int currenVal = 0;
 
-        //splitting the text int n even parts of lenght 16
-        String[] splitted = splitCode(text, 16);
+        //splitting the text int n even parts of lenght n * m
+        String[] splitted = splitCode(text, n * m);
 
         for (int i = 0; i < splitted.length; i++) {
             currentCode = splitted[i];
-
-            // initial whitestep
-            currenVal = Integer.parseInt(currentCode, 2) ^ keys[0];
-            currentCode = convertSBox(Integer.toBinaryString(currenVal));
-
+            
             // regulär rounds with r-1 keys
-            for (int j = 1; j < r - 1; j++) {
-                currentCode = permutateString(currentCode);
+            for (int j = 0; j < r  ;j++) {
                 currenVal =   Integer.parseInt(currentCode, 2) ^ keys[j];
-                currentCode = convertSBox(Integer.toBinaryString(currenVal));
+                currentCode = Integer.toBinaryString(currenVal);
+                currentCode = convertSBox(currentCode, SBox);
+                currentCode = j < r-1 ? permutateString(currentCode): currentCode;
             }
 
             // last round without bit permutation
             currenVal = Integer.parseInt(currentCode, 2) ^ keys[r];
-            result += Integer.toBinaryString(currenVal);
+            currentCode = Integer.toBinaryString(currenVal);
+            result += String.format("%" + (n*m) + "s", currentCode).replace(' ', '0');
         }
 
         return result;
